@@ -5,3 +5,9 @@ export const checkEmptyBody = (req,res,next)=>{
     }
     next();
 }
+
+export const invalidQueryParameter = (req,res,next)=>{
+    if(!req.query.title && !req.query.category)
+        return res.status(400).json( {"message": "Invalid request data."})
+    next();
+}

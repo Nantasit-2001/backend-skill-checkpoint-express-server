@@ -1,9 +1,37 @@
 import { Router } from "express";
 import connectionPool from '../utils/db.mjs'
 
-import { checkEmptyBody } from "../middleware/questionValidation.js";
+import { checkEmptyBody,invalidQueryParameter } from "../middleware/questionValidation.js";
 
 const questionsRouter=Router();
+
+questionsRouter.get("/search", [invalidQueryParameter], async (req, res) => {
+  const { title, category } = req.query;
+
+  const conditions = [];
+  const values = [];
+
+  if (title) {
+    values.push(`%${title}%`);
+    conditions.push(`title ILIKE $${values.length}`);
+  }
+
+  if (category) {
+    values.push(`%${category}%`);
+    conditions.push(`category ILIKE $${values.length}`);
+  }
+
+  const query = `SELECT * FROM questions WHERE ${conditions.join(" AND ")}`;
+
+  try {
+    const result = await connectionPool.query(query, values);
+    return res.status(200).json({ data: result.rows });
+  } catch (e) {
+    console.error(e); // <== ใส่ไว้ debug error
+    return res.status(500).json({ message: "Unable to fetch a question." });
+  }
+});
+
 
 questionsRouter.post("/",[checkEmptyBody], async (req,res)=>{
   const {title, description,category}=req.body
@@ -57,6 +85,7 @@ questionsRouter.delete("/:questionId",[],async (req,res)=>{
     return res.status(500).json({"message": "Unable to delete question."})
   }
 })
+
 
 export default questionsRouter
 
