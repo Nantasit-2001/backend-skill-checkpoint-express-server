@@ -86,6 +86,17 @@ questionsRouter.delete("/:questionId",[],async (req,res)=>{
   }
 })
 
+questionsRouter.get("/:questionId/answers",[], async(req,res)=>{
+  const id = req.params.questionId
+  try{
+    const result = await connectionPool.query(
+      `Select questions.id, answers.content from questions
+      Left Join answers on questions.id = answers.question_id
+      Where questions.id = $1`,[id])
+      if(result.rows.length<1) return res.status(404).json({"message": "Question not found."})
+    return res.status(200).json({data:result.rows})
+  }catch(e){return res.status(500).json({"message": "Unable to fetch answers."})}
+})
 
 export default questionsRouter
 
