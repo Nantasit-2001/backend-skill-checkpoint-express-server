@@ -1,7 +1,7 @@
 import { Router } from "express";
 import connectionPool from '../utils/db.mjs'
 
-import { checkEmptyBodyQuestion,invalidQueryParameter,checkEmptyBodyAnswers } from "../middleware/questionValidation.js";
+import { checkEmptyBodyQuestion,invalidQueryParameter,checkEmptyBodyAnswers,checkEmptyBodyVote } from "../middleware/questionValidation.js";
 
 const questionsRouter=Router();
 
@@ -90,7 +90,7 @@ questionsRouter.get("/:questionId/answers",[], async(req,res)=>{
   const id = req.params.questionId
   try{
     const result = await connectionPool.query(
-      `Select questions.id, answers.content from questions
+      `Select questions.id as question_id, answers.content from questions
       Left Join answers on questions.id = answers.question_id
       Where questions.id = $1`,[id])
       if(result.rows.length<1) return res.status(404).json({"message": "Question not found."})
@@ -104,8 +104,8 @@ questionsRouter.post("/:questionId/answers", [checkEmptyBodyAnswers], async (req
   try {
     const result = await connectionPool.query(
       `WITH check_question AS (SELECT id FROM questions WHERE id = $1)
-      INSERT INTO answers (content)
-      SELECT  $2
+      INSERT INTO answers (content,question_id)
+      SELECT  $2,$1
       FROM check_question
       WHERE EXISTS (SELECT 1 FROM check_question)
       RETURNING id`,
@@ -138,7 +138,23 @@ questionsRouter.post("/:questionId/vote",[checkEmptyBodyVote],async(req,res)=>{
       });
       }catch(e){ return res.status(500).json({ message: "Unable to vote answers."})}
     })
+
+questionsRouter.delete("/:questionId/answers",[], async (req,res)=>{
+  const id = req.params.questionId
+  try{
     
+    const checkQuestionId = await connectionPool.query(
+      `select * from questions where id=$1`,[id])
+      if(checkQuestionId.rowCount<1){
+        return res.status(404).json({ message: "Question not found." });
+      }
+    const result = await connectionPool.query(
+    ` DELETE FROM answers where question_id=$1`,[id])
+      return res.status(200).json({message: "All answers for the question have been deleted successfully."})
+  }catch(e){
+    return res.status(500).json({"message": "Unable to delete answers."})
+  }
+})
 
 export default questionsRouter
 

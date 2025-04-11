@@ -13,6 +13,19 @@ export const checkEmptyBodyAnswers = (req,res,next) =>{
     next();
 }
 
+export const checkEmptyBodyVote = (req, res, next) => {
+    const { vote } = req.body;
+    let invalid = false;
+    if (!vote){invalid = true}
+    else if (typeof vote !== "number") {invalid = true;} 
+    else if (vote !== 1 && vote !== -1) {invalid = true;}
+  
+    if (invalid) {
+      return res.status(400).json({ message: "Invalid vote value" });
+    }
+    next();
+};
+
 export const invalidQueryParameter = (req,res,next)=>{
     if(!req.query.title && !req.query.category)
         return res.status(400).json( {"message": "Invalid request data."})
