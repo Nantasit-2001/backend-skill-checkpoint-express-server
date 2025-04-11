@@ -121,5 +121,24 @@ questionsRouter.post("/:questionId/answers", [checkEmptyBodyAnswers], async (req
   }
 });
 
+questionsRouter.post("/:questionId/vote",[checkEmptyBodyVote],async(req,res)=>{
+  const id = req.params.questionId
+  const {vote} = req.body
+  try{
+  const result = await connectionPool.query(
+    `WITH check_question AS (SELECT id FROM questions WHERE id = $1)
+      INSERT INTO question_votes (vote,question_id)
+      select $2, $1
+      FROM check_question
+      WHERE EXISTS (SELECT 1 FROM check_question)
+      RETURNING id`,[id,vote])
+      if (result.rowCount<1) {
+        return res.status(404).json({ message: "Question not found." });}
+      return res.status(201).json({message:"Vote on the question has been recorded successfully."
+      });
+      }catch(e){ return res.status(500).json({ message: "Unable to vote answers."})}
+    })
+    
+
 export default questionsRouter
 
