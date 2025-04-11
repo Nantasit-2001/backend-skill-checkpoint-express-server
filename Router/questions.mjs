@@ -1,11 +1,11 @@
 import { Router } from "express";
 import connectionPool from '../utils/db.mjs'
 
-import { ValidateCreateQuestion } from "../middleware/questionValidation.js";
+import { checkEmptyBody } from "../middleware/questionValidation.js";
 
 const questionsRouter=Router();
 
-questionsRouter.post("/",[ValidateCreateQuestion], async (req,res)=>{
+questionsRouter.post("/",[checkEmptyBody], async (req,res)=>{
   const {title, description,category}=req.body
   try{
     const result = await connectionPool.query(
@@ -33,6 +33,18 @@ questionsRouter.get("/:questionId",[],async (req, res) => {
       }catch(e){ return res.status(500).json({"message": "Unable to fetch questions."})}
     });
 
+questionsRouter.put("/:questionId",[checkEmptyBody],async (req, res) => {
+    const id = req.params.questionId
+    const {title, description,category}=req.body
+      try{
+        const result = await connectionPool.query(
+          ` UPDATE questions
+            SET title=$2, description=$3, category=$4
+            where id=$1`,[id,title,description,category])
+            if(result.rowCount<1){return res.status(404).json({message:"Question not found."})}
+        return res.status(200).json({"message": "Question updated successfully."});
+        }catch(e){ return res.status(500).json({"message": "Unable to fetch questions."})}
+      });
 
 
 export default questionsRouter
