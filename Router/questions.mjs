@@ -1,7 +1,7 @@
 import { Router } from "express";
 import connectionPool from '../utils/db.mjs'
 
-import { checkEmptyBody,invalidQueryParameter } from "../middleware/questionValidation.js";
+import { checkEmptyBodyQuestion,invalidQueryParameter,checkEmptyBodyAnswers } from "../middleware/questionValidation.js";
 
 const questionsRouter=Router();
 
@@ -33,7 +33,7 @@ questionsRouter.get("/search", [invalidQueryParameter], async (req, res) => {
 });
 
 
-questionsRouter.post("/",[checkEmptyBody], async (req,res)=>{
+questionsRouter.post("/",[checkEmptyBodyQuestion], async (req,res)=>{
   const {title, description,category}=req.body
   try{
     const result = await connectionPool.query(
@@ -61,7 +61,7 @@ questionsRouter.get("/:questionId",[],async (req, res) => {
       }catch(e){ return res.status(500).json({"message": "Unable to fetch questions."})}
     });
 
-questionsRouter.put("/:questionId",[checkEmptyBody],async (req, res) => {
+questionsRouter.put("/:questionId",[checkEmptyBodyQuestion],async (req, res) => {
     const id = req.params.questionId
     const {title, description,category}=req.body
       try{
@@ -97,6 +97,29 @@ questionsRouter.get("/:questionId/answers",[], async(req,res)=>{
     return res.status(200).json({data:result.rows})
   }catch(e){return res.status(500).json({"message": "Unable to fetch answers."})}
 })
+
+questionsRouter.post("/:questionId/answers", [checkEmptyBodyAnswers], async (req, res) => {
+  const id = req.params.questionId;
+  const { content } = req.body;
+  try {
+    const result = await connectionPool.query(
+      `WITH check_question AS (SELECT id FROM questions WHERE id = $1)
+      INSERT INTO answers (content)
+      SELECT  $2
+      FROM check_question
+      WHERE EXISTS (SELECT 1 FROM check_question)
+      RETURNING id`,
+      [id, content]
+    );
+    if (result.rowCount<1) {
+      return res.status(404).json({ message: "Question not found." });
+    }
+    return res.status(201).json({ message: "Answer created successfully."});
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Unable to create answers."});
+  }
+});
 
 export default questionsRouter
 

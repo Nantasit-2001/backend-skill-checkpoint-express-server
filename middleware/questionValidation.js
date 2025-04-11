@@ -1,8 +1,15 @@
-export const checkEmptyBody = (req,res,next)=>{
+export const checkEmptyBodyQuestion = (req,res,next)=>{
     const {title, description,category}=req.body
     if(!title || !description ||!category ){
         return res.status(400).json( {"message": "Invalid request data."})
     }
+    next();
+}
+
+export const checkEmptyBodyAnswers = (req,res,next) =>{
+    const {content} = req.body
+    if(!content){
+        return res.status(400).json({"message": "Invalid request data."})}
     next();
 }
 
