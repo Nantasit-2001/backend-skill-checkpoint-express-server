@@ -46,6 +46,17 @@ questionsRouter.put("/:questionId",[checkEmptyBody],async (req, res) => {
         }catch(e){ return res.status(500).json({"message": "Unable to fetch questions."})}
       });
 
+questionsRouter.delete("/:questionId",[],async (req,res)=>{
+  const id = req.params.questionId
+  try{
+  const result = await connectionPool.query(
+    'DELETE FROM questions where id=$1',[id] )
+    if(result.rowCount<1){return res.status(404).json({"message": "Question not found."})}
+    return res.status(200).json({"message": "Question post has been deleted successfully."})
+  }catch(e){
+    return res.status(500).json({"message": "Unable to delete question."})
+  }
+})
 
 export default questionsRouter
 
