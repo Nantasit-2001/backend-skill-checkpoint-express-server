@@ -5,6 +5,49 @@ import { checkEmptyBodyQuestion,invalidQueryParameter,checkEmptyBodyAnswers,chec
 
 const questionsRouter=Router();
 
+/**
+ * @swagger
+ * /questions/search:
+ *   get:
+ *     summary: Search for questions
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Title keyword to search
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Category to search
+ *     responses:
+ *       200:
+ *         description: List of matched questions
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid request data
+ *       500:
+ *         description: Unable to fetch a question
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to fetch a question
+ */
+
 questionsRouter.get("/search", [invalidQueryParameter], async (req, res) => {
   const { title, category } = req.query;
 
@@ -33,6 +76,61 @@ questionsRouter.get("/search", [invalidQueryParameter], async (req, res) => {
 });
 
 
+/**
+ * @swagger
+ * /questions:
+ *   post:
+ *     summary: Create a new question
+ *     description: Create a new question
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - category
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string     
+ *     responses:
+ *       201:
+ *         description: Question created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question created successfully
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid request data
+ *       500:
+ *         description: Unable to fetch a question
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to fetch a question
+ */
 questionsRouter.post("/",[checkEmptyBodyQuestion], async (req,res)=>{
   const {title, description,category}=req.body
   try{
@@ -42,6 +140,47 @@ questionsRouter.post("/",[checkEmptyBodyQuestion], async (req,res)=>{
     }catch(e){return res.status(500).json({"message": "Unable to create question."})}
 }); 
 
+/**
+ * @swagger
+ * /questions:
+ *   get:
+ *     summary: Get all questions
+ *     description: Get all questions 
+ *     responses:
+ *       200:
+ *         description: A list of questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 date:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       title:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *       500:
+ *         description: Unable to fetch questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to fetch a question
+ */
 questionsRouter.get("/",[],async (req, res) => {
   try{
     const result = await connectionPool.query(
@@ -51,6 +190,62 @@ questionsRouter.get("/",[],async (req, res) => {
     }catch(e){ return res.status(500).json({"message": "Unable to fetch questions."})}
   });
 
+/**
+ * @swagger
+ * /questions/{questionId}:
+ *   get:
+ *     summary: Get a question by ID
+ *     description: Fetch a specific question by its ID
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the question to fetch
+ *     responses:
+ *       200:
+ *         description: Successfully fetched the question
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 date:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     title:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     category:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *       404:
+ *         description: Question not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question not found
+ *       500:
+ *         description: Unable to fetch a question
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to fetch a question
+ */
 questionsRouter.get("/:questionId",[],async (req, res) => {
     const id = req.params.questionId
     try{
@@ -61,6 +256,78 @@ questionsRouter.get("/:questionId",[],async (req, res) => {
       }catch(e){ return res.status(500).json({"message": "Unable to fetch questions."})}
     });
 
+    /**
+ * @swagger
+ * /questions/{questionId}:
+ *   put:
+ *     summary: Update a question by ID
+ *     description: Update the title, description, and category of a question
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the question to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - category
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Question updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question updated successfully.
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid request data.
+ *       404:
+ *         description: Question not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question not found.
+ *       500:
+ *         description: Unable to fetch questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to fetch questions.
+ */
 questionsRouter.put("/:questionId",[checkEmptyBodyQuestion],async (req, res) => {
     const id = req.params.questionId
     const {title, description,category}=req.body
@@ -74,6 +341,51 @@ questionsRouter.put("/:questionId",[checkEmptyBodyQuestion],async (req, res) => 
         }catch(e){ return res.status(500).json({"message": "Unable to fetch questions."})}
       });
 
+      /**
+ * @swagger
+ * /questions/{questionId}:
+ *   delete:
+ *     summary: Delete a question
+ *     description: Delete a specific question by its ID
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the question to delete
+ *     responses:
+ *       200:
+ *         description: Question post has been deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question post has been deleted successfully.
+ *       404:
+ *         description: Question not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question not found.
+ *       500:
+ *         description: Unable to delete question
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to delete question.
+ */
 questionsRouter.delete("/:questionId",[],async (req,res)=>{
   const id = req.params.questionId
   try{
@@ -86,6 +398,57 @@ questionsRouter.delete("/:questionId",[],async (req,res)=>{
   }
 })
 
+/**
+ * @swagger
+ * /questions/{questionId}/answers:
+ *   get:
+ *     summary: Get all answers for a question
+ *     description: Retrieve all answers that belong to a specific question
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the question to fetch answers for
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved answers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       question_id:
+ *                         type: integer
+ *                       content:
+ *                         type: string
+ *       404:
+ *         description: Question not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question not found.
+ *       500:
+ *         description: Unable to fetch answers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to fetch answers.
+ */
 questionsRouter.get("/:questionId/answers",[], async(req,res)=>{
   const id = req.params.questionId
   try{
@@ -98,6 +461,73 @@ questionsRouter.get("/:questionId/answers",[], async(req,res)=>{
   }catch(e){return res.status(500).json({"message": "Unable to fetch answers."})}
 })
 
+/**
+ * @swagger
+ * /questions/{questionId}/answers:
+ *   post:
+ *     summary: Create an answer for a question
+ *     description: Create a new answer associated with a specific question ID.
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the question
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: This is the answer content.
+ *     responses:
+ *       201:
+ *         description: Answer created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Answer created successfully.
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid request data.
+ *       404:
+ *         description: Question not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question not found
+ *       500:
+ *         description: Unable to create answers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to create answers.
+ */
 questionsRouter.post("/:questionId/answers", [checkEmptyBodyAnswers], async (req, res) => {
   const id = req.params.questionId;
   const { content } = req.body;
@@ -121,6 +551,74 @@ questionsRouter.post("/:questionId/answers", [checkEmptyBodyAnswers], async (req
   }
 });
 
+/**
+ * @swagger
+ * /questions/{questionId}/vote:
+ *   post:
+ *     summary: Vote for a question
+ *     description: Add a vote for a specific question by its ID. The vote value must be provided (e.g., 1 or -1).
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the question
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - vote
+ *             properties:
+ *               vote:
+ *                 type: integer
+ *                 description: Vote value (1 for upvote, -1 for downvote)
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Vote recorded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Vote on the question has been recorded successfully.
+ *       400:
+ *         description: Invalid vote value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid vote value.
+ *       404:
+ *         description: Question not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question not found
+ *       500:
+ *         description: Unable to vote answers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to vote answers.
+ */
 questionsRouter.post("/:questionId/vote",[checkEmptyBodyVote],async(req,res)=>{
   const id = req.params.questionId
   const {vote} = req.body
@@ -139,6 +637,51 @@ questionsRouter.post("/:questionId/vote",[checkEmptyBodyVote],async(req,res)=>{
       }catch(e){ return res.status(500).json({ message: "Unable to vote answers."})}
     })
 
+    /**
+ * @swagger
+ * /questions/{questionId}/answers:
+ *   delete:
+ *     summary: Delete all answers for a question
+ *     description: Deletes all answers related to a specific question by its ID.
+ *     parameters:
+ *       - in: path
+ *         name: questionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the question whose answers will be deleted
+ *     responses:
+ *       200:
+ *         description: All answers for the question have been deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: All answers for the question have been deleted successfully.
+ *       404:
+ *         description: Question not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Question not found
+ *       500:
+ *         description: Unable to delete answers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unable to delete answers.
+ */
 questionsRouter.delete("/:questionId/answers",[], async (req,res)=>{
   const id = req.params.questionId
   try{
