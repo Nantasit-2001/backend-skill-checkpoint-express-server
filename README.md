@@ -39,9 +39,9 @@
      - สร้างฐานข้อมูล PostgreSQL
     รัน SQL Script เพื่อสร้างตารางและข้อมูลเบื้องต้น: [quora-mock.sql](https://gist.github.com/napatwongchr/811ef7071003602b94482b3d8c0f32e0)
 4. **กำหนดค่า Environment Variables:**
-     -กำหนดค่า POST (ในที่นี้ใช้ 4000)
+     - กำหนดค่า POST (ในที่นี้ใช้ 4000)
      - ตั้งค่า `connectionString` สำหรับเชื่อมต่อฐานข้อมูล PostgreSQL ในไฟล์ `utils/db.mjs` ให้อยู่ในรูปแบบ:
-     postgresql://DB_USER:DB_PASSWORD@DB_HOST:DB_PORT/DB_NAME
+     `postgresql://DB_USER:DB_PASSWORD@DB_HOST:DB_PORT/DB_NAME`
      - DB_USER=your_username
      - DB_PASSWORD=your_password
      - DB_HOST=localhost
